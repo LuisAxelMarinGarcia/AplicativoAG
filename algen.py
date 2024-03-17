@@ -104,7 +104,7 @@ class AplicacionGestionReservas:
 
 
     def iniciar_optimizacion(self):
-        # Recogida de datos de la interfaz.
+        # Recogida de datos de la interfaz
         noches = int(self.entradas_noche.get())
         huespedes = int(self.num_huespedes.get())
         preferencias = self.preferencias.get()
@@ -113,12 +113,12 @@ class AplicacionGestionReservas:
         eventos = self.eventos.get()
         temporada = self.temporada.get()
 
-        # Configuración inicial del algoritmo.
+        # Configuración inicial del algoritmo
         num_habitaciones = 20 if tamaño == "Suite" else 10
         tamano_poblacion = 10
         generaciones = 20
 
-        # Proceso de optimización.
+        # Proceso de optimización
         poblacion = self.generar_poblacion_inicial(tamano_poblacion, num_habitaciones)
         for _ in range(generaciones):
             poblacion_con_aptitud = [(ind, self.evaluar_aptitud(ind, preferencias, comodidades_seleccionadas, eventos, temporada, noches, huespedes, tamaño)) for ind in poblacion]
@@ -130,13 +130,16 @@ class AplicacionGestionReservas:
 
             poblacion = nueva_poblacion[:tamano_poblacion]
 
-        # Evaluación final y selección de la mejor solución.
+        # Evaluación final y selección de la mejor solución...
         poblacion_final_con_aptitud = [(ind, self.evaluar_aptitud(ind, preferencias, comodidades_seleccionadas, eventos, temporada, noches, huespedes, tamaño)) for ind in poblacion]
-        mejor_solucion = max(poblacion_final_con_aptitud, key=lambda x: x[1])[0]
+        mejor_solucion, mejor_aptitud = max(poblacion_final_con_aptitud, key=lambda x: x[1])
 
-        # Mostrar la mejor solución en la interfaz.
-        resultado_str = f"Mejor solución encontrada: {mejor_solucion}"
+        # Mostrar la mejor solución en la interfaz y luego en la ventana de resultados
+        resultado_str = f"Mejor solución encontrada con aptitud {mejor_aptitud}: {mejor_solucion}"
         self.resultado_label.config(text=resultado_str)
+        
+        # Mostrar la ventana de resultados detallados basados en la mejor solución
+        self.mostrar_resultados(noches, huespedes, tamaño, preferencias, comodidades_seleccionadas, eventos, temporada)
 
                 
     def actualizar_limite_huespedes(self, event):
@@ -152,7 +155,57 @@ class AplicacionGestionReservas:
         # Resetea el valor cuando se cambia el tamaño de habitación
         self.num_huespedes.delete(0, 'end')
         self.num_huespedes.insert(0, "1")
+        
+    
+    def mostrar_resultados(self, noches, huespedes, tamaño, preferencias, comodidades_seleccionadas, eventos, temporada):
+        # Crear una nueva ventana para mostrar los resultados
+        ventana_resultados = tk.Toplevel(self.ventana)
+        ventana_resultados.title("Resultados de la Optimización")
+        ventana_resultados.configure(bg=COLOR_FONDO)
 
+        # Mostrar los detalles de la reserva
+        detalles_reserva = (f"Número de noches: {noches}\n"
+                            f"Número de huéspedes: {huespedes}\n"
+                            f"Tamaño de habitación: {tamaño}\n"
+                            f"Preferencias especiales: {preferencias}\n"
+                            f"Comodidades seleccionadas: {', '.join(comodidades_seleccionadas) if comodidades_seleccionadas else 'Ninguna'}\n"
+                            f"Evento local durante la estancia: {eventos}\n"
+                            f"Temporada de la reserva: {temporada}\n")
+
+        tk.Label(ventana_resultados, text="Detalles de la reserva:\n" + detalles_reserva, bg=COLOR_FONDO, font=FUENTE, wraplength=500).pack(pady=10)
+
+        # Simulación de la ocupación del hotel y recomendaciones
+        ocupacion_estimada = self.calcular_ocupacion_hotel(noches, temporada)
+        recomendacion_precio = self.generar_recomendacion_precio(ocupacion_estimada)
+
+        tk.Label(ventana_resultados, text=f"Ocupación del hotel estimada para el período de la reserva: {ocupacion_estimada:.2f}%", bg=COLOR_FONDO, font=FUENTE).pack(pady=10)
+        tk.Label(ventana_resultados, text=f"Recomendación: {recomendacion_precio}", bg=COLOR_FONDO, font=FUENTE).pack(pady=10)
+        
+    def calcular_ocupacion_hotel(self, noches, temporada):
+        # Suponemos que tenemos una ocupación base que varía según la temporada
+        base_ocupacion_temporada = {
+            'Baja': 50,  # 50% de ocupación base en temporada baja
+            'Media': 70,  # 70% de ocupación base en temporada media
+            'Alta': 90,  # 90% de ocupación base en temporada alta
+        }
+        
+        # Asumimos que la ocupación puede variar en un 10% diario debido a factores no controlables (azar)
+        variacion_aleatoria = sum(random.uniform(-0.1, 0.1) for _ in range(noches))
+        ocupacion_estimada = base_ocupacion_temporada[temporada] + (variacion_aleatoria * 100)
+        
+        # Asegurarnos de que la ocupación esté entre 0% y 100%
+        ocupacion_estimada = max(0, min(100, ocupacion_estimada))
+        
+        return ocupacion_estimada
+
+    def generar_recomendacion_precio(self, ocupacion_hotel):
+        # Definimos umbrales de ocupación para nuestras recomendaciones de precios
+        if ocupacion_hotel > 85:
+            return "Considerar aumento de precios por alta demanda"
+        elif ocupacion_hotel < 40:
+            return "Evaluar promociones para incrementar la ocupación"
+        else:
+            return "Mantener precios actuales"
 
     def configurar_ui(self):
         frame_reservas = tk.LabelFrame(self.ventana, text="Detalles de las Reservas", bg=COLOR_FONDO, font=FUENTE)
