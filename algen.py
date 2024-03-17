@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import random
 import itertools
+from cuartos import CUARTOS
 
 # Estilos generales
 COLOR_FONDO = "#f0f0f0"
@@ -16,10 +17,10 @@ class AplicacionGestionReservas:
         self.configurar_ui()
 
     def generar_poblacion_inicial(self, tamano_poblacion, num_habitaciones):
-        return [[random.randint(1, num_habitaciones) for _ in range(tamano_poblacion)] for _ in range(tamano_poblacion)]
+        return [[random.randint(0, num_habitaciones - 1) for _ in range(tamano_poblacion)]]
 
     def seleccionar_para_cruza(self, poblacion_con_aptitud):
-        total_aptitud = sum([aptitud for _, aptitud in poblacion_con_aptitud])
+        total_aptitud = sum(aptitud for _, aptitud in poblacion_con_aptitud)
         probabilidades = [aptitud / total_aptitud for _, aptitud in poblacion_con_aptitud]
         return random.choices(poblacion_con_aptitud, weights=probabilidades, k=2)
 
@@ -28,10 +29,7 @@ class AplicacionGestionReservas:
         return (individuo1[:punto_cruza] + individuo2[punto_cruza:], individuo2[:punto_cruza] + individuo1[punto_cruza:])
 
     def mutar_individuo(self, individuo, num_habitaciones):
-        for i in range(len(individuo)):
-            if random.random() < 0.05:  # Una tasa de mutación más razonable
-                individuo[i] = random.randint(1, num_habitaciones)
-        return individuo
+        return [random.randint(0, num_habitaciones - 1) if random.random() < 0.05 else i for i in individuo]
 
     def evaluar_aptitud(self, individuo, preferencias, comodidades_seleccionadas, eventos, temporada, noches, huespedes, tamaño):
         # Inicializa el puntaje de aptitud total
@@ -114,34 +112,35 @@ class AplicacionGestionReservas:
         temporada = self.temporada.get()
 
         # Configuración inicial del algoritmo
-        num_habitaciones = 20 if tamaño == "Suite" else 10
-        tamano_poblacion = 10
-        generaciones = 20
+        num_habitaciones = len(CUARTOS)
+        tamano_poblacion = 20  # Modifica según necesidad
+        generaciones = 50  # Número de generaciones a iterar
 
-        # Proceso de optimización
+        # Generar población inicial
         poblacion = self.generar_poblacion_inicial(tamano_poblacion, num_habitaciones)
+
+        # Proceso de optimización con el algoritmo genético
         for _ in range(generaciones):
-            poblacion_con_aptitud = [(ind, self.evaluar_aptitud(ind, preferencias, comodidades_seleccionadas, eventos, temporada, noches, huespedes, tamaño)) for ind in poblacion]
+            poblacion_con_aptitud = [(ind, self.evaluar_aptitud(CUARTOS[ind[0]], preferencias, comodidades_seleccionadas, eventos, temporada, noches, huespedes, tamaño)) for ind in poblacion]
             nueva_poblacion = []
             while len(nueva_poblacion) < tamano_poblacion:
-                padre1, padre2 = [p[0] for p in self.seleccionar_para_cruza(poblacion_con_aptitud)]
-                hijo1, hijo2 = self.cruzar_en_punto_fijo(padre1, padre2)
+                padre1, padre2 = self.seleccionar_para_cruza(poblacion_con_aptitud)
+                hijo1, hijo2 = self.cruzar_en_punto_fijo(padre1[0], padre2[0])
                 nueva_poblacion.extend([self.mutar_individuo(hijo1, num_habitaciones), self.mutar_individuo(hijo2, num_habitaciones)])
 
             poblacion = nueva_poblacion[:tamano_poblacion]
 
         # Evaluación final y selección de la mejor solución...
-        poblacion_final_con_aptitud = [(ind, self.evaluar_aptitud(ind, preferencias, comodidades_seleccionadas, eventos, temporada, noches, huespedes, tamaño)) for ind in poblacion]
-        mejor_solucion, mejor_aptitud = max(poblacion_final_con_aptitud, key=lambda x: x[1])
+        mejor_solucion, mejor_aptitud = max(poblacion_con_aptitud, key=lambda x: x[1])
+        mejor_habitacion = CUARTOS[mejor_solucion[0]]
 
         # Mostrar la mejor solución en la interfaz y luego en la ventana de resultados
-        resultado_str = f"Mejor solución encontrada con aptitud {mejor_aptitud}: {mejor_solucion}"
+        resultado_str = f"La mejor habitación encontrada es la número {mejor_habitacion['id']} con una aptitud de {mejor_aptitud}"
         self.resultado_label.config(text=resultado_str)
         
-        # Mostrar la ventana de resultados detallados basados en la mejor solución
-        self.mostrar_resultados(noches, huespedes, tamaño, preferencias, comodidades_seleccionadas, eventos, temporada)
-
-                
+        # Actualizar para mostrar resultados detallados de la mejor habitación encontrada
+        self.mostrar_resultados(noches, huespedes, tamaño, preferencias, comodidades_seleccionadas, eventos, temporada, mejor_habitacion)
+                        
     def actualizar_limite_huespedes(self, event):
         # Actualizar el límite de huéspedes basado en el tamaño de la habitación
         tamano = self.tamano_habitacion.get()
@@ -157,46 +156,24 @@ class AplicacionGestionReservas:
         self.num_huespedes.insert(0, "1")
         
     
-    def mostrar_resultados(self, noches, huespedes, tamaño, preferencias, comodidades_seleccionadas, eventos, temporada):
+    def mostrar_resultados(self, noches, huespedes, tamaño, preferencias, comodidades_seleccionadas, eventos, temporada, habitacion):
         # Crear una nueva ventana para mostrar los resultados
         ventana_resultados = tk.Toplevel(self.ventana)
         ventana_resultados.title("Resultados de la Optimización")
         ventana_resultados.configure(bg=COLOR_FONDO)
 
-        # Mostrar los detalles de la reserva
+        # Mostrar los detalles de la reserva y la habitación seleccionada
         detalles_reserva = (f"Número de noches: {noches}\n"
                             f"Número de huéspedes: {huespedes}\n"
-                            f"Tamaño de habitación: {tamaño}\n"
+                            f"Tamaño de habitación seleccionada: {habitacion['tamaño']}\n"
+                            f"ID de habitación: {habitacion['id']}\n"
+                            f"Comodidades de la habitación: {', '.join(habitacion['comodidades'])}\n"
                             f"Preferencias especiales: {preferencias}\n"
-                            f"Comodidades seleccionadas: {', '.join(comodidades_seleccionadas) if comodidades_seleccionadas else 'Ninguna'}\n"
                             f"Evento local durante la estancia: {eventos}\n"
                             f"Temporada de la reserva: {temporada}\n")
 
         tk.Label(ventana_resultados, text="Detalles de la reserva:\n" + detalles_reserva, bg=COLOR_FONDO, font=FUENTE, wraplength=500).pack(pady=10)
-
-        # Simulación de la ocupación del hotel y recomendaciones
-        ocupacion_estimada = self.calcular_ocupacion_hotel(noches, temporada)
-        recomendacion_precio = self.generar_recomendacion_precio(ocupacion_estimada)
-
-        tk.Label(ventana_resultados, text=f"Ocupación del hotel estimada para el período de la reserva: {ocupacion_estimada:.2f}%", bg=COLOR_FONDO, font=FUENTE).pack(pady=10)
-        tk.Label(ventana_resultados, text=f"Recomendación: {recomendacion_precio}", bg=COLOR_FONDO, font=FUENTE).pack(pady=10)
         
-    def calcular_ocupacion_hotel(self, noches, temporada):
-        # Suponemos que tenemos una ocupación base que varía según la temporada
-        base_ocupacion_temporada = {
-            'Baja': 50,  # 50% de ocupación base en temporada baja
-            'Media': 70,  # 70% de ocupación base en temporada media
-            'Alta': 90,  # 90% de ocupación base en temporada alta
-        }
-        
-        # Asumimos que la ocupación puede variar en un 10% diario debido a factores no controlables (azar)
-        variacion_aleatoria = sum(random.uniform(-0.1, 0.1) for _ in range(noches))
-        ocupacion_estimada = base_ocupacion_temporada[temporada] + (variacion_aleatoria * 100)
-        
-        # Asegurarnos de que la ocupación esté entre 0% y 100%
-        ocupacion_estimada = max(0, min(100, ocupacion_estimada))
-        
-        return ocupacion_estimada
 
     def generar_recomendacion_precio(self, ocupacion_hotel):
         # Definimos umbrales de ocupación para nuestras recomendaciones de precios

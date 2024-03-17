@@ -1,0 +1,23 @@
+
+CUARTOS = [
+    {"id": 1, "tamaño": "Estándar", "comodidades": ["WiFi", "Aire acondicionado", "TV"], "preferencias": ["Proximidad a instalaciones"]},
+    {"id": 2, "tamaño": "Suite", "comodidades": ["WiFi", "Aire acondicionado", "Minibar", "TV", "Caja fuerte"], "preferencias": ["Preferencia por vista"]},
+    {"id": 3, "tamaño": "Estándar", "comodidades": ["WiFi", "TV"], "preferencias": ["Accesibilidad"]},
+    {"id": 4, "tamaño": "Suite", "comodidades": ["WiFi", "Aire acondicionado", "Minibar"], "preferencias": ["Preferencia por vista", "Proximidad a instalaciones"]},
+    {"id": 5, "tamaño": "Estándar", "comodidades": ["WiFi", "Aire acondicionado", "TV", "Caja fuerte"], "preferencias": ["Accesibilidad"]},
+    {"id": 6, "tamaño": "Estándar", "comodidades": ["WiFi", "Minibar", "TV"], "preferencias": ["Proximidad a instalaciones"]},
+    {"id": 7, "tamaño": "Suite", "comodidades": ["WiFi", "TV", "Caja fuerte"], "preferencias": ["Preferencia por vista"]},
+    {"id": 8, "tamaño": "Estándar", "comodidades": ["Aire acondicionado", "Minibar", "TV"], "preferencias": ["Accesibilidad"]},
+    {"id": 9, "tamaño": "Suite", "comodidades": ["WiFi", "Aire acondicionado", "Minibar", "Caja fuerte"], "preferencias": ["Preferencia por vista"]},
+    {"id": 10, "tamaño": "Estándar", "comodidades": ["WiFi", "Aire acondicionado"], "preferencias": ["Proximidad a instalaciones"]},
+    {"id": 11, "tamaño": "Suite", "comodidades": ["WiFi", "Minibar", "TV", "Caja fuerte"], "preferencias": ["Preferencia por vista", "Accesibilidad"]},
+    {"id": 12, "tamaño": "Estándar", "comodidades": ["WiFi", "TV", "Caja fuerte"], "preferencias": ["Proximidad a instalaciones"]},
+    {"id": 13, "tamaño": "Suite", "comodidades": ["WiFi", "Aire acondicionado", "TV"], "preferencias": ["Preferencia por vista"]},
+    {"id": 14, "tamaño": "Estándar", "comodidades": ["Aire acondicionado", "TV"], "preferencias": ["Accesibilidad"]},
+    {"id": 15, "tamaño": "Suite", "comodidades": ["WiFi", "Aire acondicionado", "Minibar", "TV"], "preferencias": ["Preferencia por vista", "Proximidad a instalaciones"]},
+    {"id": 16, "tamaño": "Estándar", "comodidades": ["WiFi", "Aire acondicionado", "Minibar", "TV"], "preferencias": ["Accesibilidad"]},
+    {"id": 17, "tamaño": "Suite", "comodidades": ["WiFi", "TV", "Caja fuerte", "Minibar"], "preferencias": ["Preferencia por vista"]},
+    {"id": 18, "tamaño": "Estándar", "comodidades": ["WiFi", "Aire acondicionado", "Caja fuerte"], "preferencias": ["Proximidad a instalaciones"]},
+    {"id": 19, "tamaño": "Suite", "comodidades": ["WiFi", "Aire acondicionado", "Minibar"], "preferencias": ["Preferencia por vista", "Accesibilidad"]},
+    {"id": 20, "tamaño": "Estándar", "comodidades": ["WiFi", "TV", "Minibar", "Caja fuerte"], "preferencias": ["Accesibilidad"]},
+]
